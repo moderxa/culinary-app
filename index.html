@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Кулинарная книга</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./dist/main.js"></script>
+</head>
+<body>
+    <header class="page-header">
+    <h1>Кулинарная книга</h1>
+    <p>Рецепты на каждый день</p>
+    </header>
+    <main>
+        <section aria-labelledby="search-title">
+            <h2 id="search-title">Найти рецепт</h2>
+            <label for="search">Название</label>
+            <input id="search" type="search" placeholder="Например, сырники">
+            <label for="category-filter">Категория</label>
+            <select id="category-filter">
+                <option value="Все">Все категории</option>
+                <option value="Завтрак">Завтрак</option>
+                <option value="Обед">Обед</option>
+                <option value="Ужин">Ужин</option>
+                <option value="Десерт">Десерт</option>
+            </select>
+            <label>
+                <input id="favorites-only" type="checkbox">
+                Только избранное
+            </label>
+            <label>
+                <input id="max-time-30" type="checkbox">
+                До 30 минут
+            </label>
+            <label>
+                <input id="sort-by-time" type="checkbox">
+                Сортировать по времени
+            </label>
+            <button type="button" id="clear-filters-btn">Очистить фильтры</button>
+        </section>
+
+        <section aria-labelledby="add-title">
+            <h2 id="add-title">Добавить рецепт</h2>
+            <form id="recipe-form">
+                <label for="recipe-title">Название</label>
+                <input id="recipe-title" name="title" required maxlength="80">
+                
+                <label for="recipe-category">Категория</label>
+                <select id="recipe-category" name="category" required>
+                    <option value="Завтрак">Завтрак</option>
+                    <option value="Обед">Обед</option>
+                    <option value="Ужин">Ужин</option>
+                    <option value="Десерт">Десерт</option>
+                </select>
+
+                <label for="recipe-servings">Количество порций</label>
+                <input id="recipe-servings" name="servings" type="number" min="1" max="30" value="2" required>
+
+                <label for="recipe-time">Время приготовления (мин.)</label>
+                <input id="recipe-time" name="cookingTime" type="number" min="1" max="600" value="20" required>
+
+                <label for="recipe-image">Ссылка на изображение (URL)</label>
+                <input id="recipe-image" type="url" placeholder="https://example.com">
+
+                <label for="recipe-ingredients">Ингредиенты через запятую</label>
+                <textarea id="recipe-ingredients" name="ingredients" required></textarea>
+
+                <label for="recipe-instructions">Приготовление</label>
+                <textarea id="recipe-instructions" name="instructions" required></textarea>
+
+                <button type="submit">Сохранить рецепт</button>
+                <button type="button" id="cancel-edit-btn" style="display: none; margin-left: 10px; background: #95a5a6; color: white;">Отмена</button>
+                <p id="form-message" role="status"></p>
+            </form>
+        </section>
+
+            <section aria-labelledby="recipes-title">
+        <h2 id="recipes-title">Рецепты</h2>
+        
+        <div style="margin-bottom: 15px; font-size: 14px; color: #555;">
+            <strong>Категории:</strong> 
+            Завтрак <span id="count-Завтрак">(0)</span> | 
+            Обед <span id="count-Обед">(0)</span> | 
+            Ужин <span id="count-Ужин">(0)</span> | 
+            Десерт <span id="count-Десерт">(0)</span>
+        </div>
+
+        <p id="results-count" aria-live="polite"></p>
+        <div id="recipe-list" class="recipe-grid"></div>
+    </section>
+    </main>
+</body>
+</html>
+
