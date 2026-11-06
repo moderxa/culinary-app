@@ -1,16 +1,3 @@
-export function createRecipe(draft) {
-    return {
-        ...draft,
-        id: `recipe-${Date.now()}`,
-        favorite: false
-    };
-}
-export function updateRecipe(recipe, changes) {
-    return {
-        ...recipe,
-        ...changes
-    };
-}
 export function filterRecipes(recipes, filters) {
     let filtered = recipes.filter((recipe) => {
         const matchesSearch = recipe.title.toLowerCase().includes(filters.query.toLowerCase()) ||

@@ -25,3 +25,6 @@ export type RecipeFilter = {
  maxTime30: boolean;    
  sortByTime: boolean;   
 };
+
+export type NewRecipe = Omit<Recipe, "id">;
+

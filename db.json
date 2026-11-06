@@ -1,0 +1,18 @@
+{
+  "recipes": [
+    {
+      "id": "1",
+      "title": "Сырники",
+      "category": "Завтрак",
+      "servings": 4,
+      "cookingTime": 30,
+      "ingredients": [
+        "Творог 500 г",
+        "Яйцо 1 шт",
+        "Мука 3 ст. л."
+      ],
+      "instructions": "Смешать, сформировать, обжарить.",
+      "favorite": false
+    }
+  ]
+}

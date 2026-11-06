@@ -1,4 +1,4 @@
-import type { Recipe, Category } from "./types.js";
+import type { Recipe, Category, RecipeFilter } from "./types.js";
 
 function isValidUrl(url: string): boolean {
   try {
@@ -37,6 +37,8 @@ export function renderRecipes(
     return;
   }
 
+  updateCategoryCounts(recipes);
+
   recipes.forEach((recipe) => {
     const card = document.createElement("div");
     card.className = "recipe-card";
@@ -56,7 +58,6 @@ export function renderRecipes(
       <p>Ингредиенты: ${recipe.ingredients.join(", ")}</p>
       <p>${recipe.instructions}</p>
       <button class="fav-btn">${recipe.favorite ? "Из избранного" : "В избранное"}</button>
-      <!-- Добавлена кнопка Редактировать -->
       <button class="edit-btn" style="margin-left: 10px; cursor: pointer;">Редактировать</button>
       <button class="delete-btn" style="margin-left: 10px; color: red; cursor: pointer;">Удалить</button>
     `;
@@ -78,4 +79,40 @@ export function renderRecipes(
 
     container.appendChild(card);
   });
+}
+
+export function getFilter(): RecipeFilter {
+  const searchInput = document.getElementById("search") as HTMLInputElement | null;
+  const categorySelect = document.getElementById("category-filter") as HTMLSelectElement | null;
+  const favsCheckbox = document.getElementById("favorites-only") as HTMLInputElement | null;
+  const timeCheckbox = document.getElementById("max-time-30") as HTMLInputElement | null;
+  const sortCheckbox = document.getElementById("sort-by-time") as HTMLInputElement | null;
+
+  return {
+    query: searchInput?.value || "",
+    category: (categorySelect?.value as any) || "Все",
+    favoritesOnly: favsCheckbox?.checked || false,
+    maxTime30: timeCheckbox?.checked || false,
+    sortByTime: sortCheckbox?.checked || false,
+  };
+}
+
+export function renderMessage(text: string, onRetry?: () => void): void {
+  const recipelist = document.getElementById("recipe-list"); 
+  if (recipelist) {
+    recipelist.innerHTML = "";
+    
+    const p = document.createElement("p");
+    p.textContent = text;
+    recipelist.append(p);
+
+    if (onRetry) {
+      const btn = document.createElement("button");
+      btn.textContent = "Повторить попытку";
+      btn.style.marginLeft = "10px";
+      btn.style.cursor = "pointer";
+      btn.addEventListener("click", onRetry);
+      recipelist.append(btn);
+    }
+  }
 }

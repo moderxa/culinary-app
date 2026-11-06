@@ -26,6 +26,7 @@ export function renderRecipes(recipes, containerId, onToggleFavorite, onDeleteRe
         container.innerHTML = "<p>Рецепты не найдены</p>";
         return;
     }
+    updateCategoryCounts(recipes);
     recipes.forEach((recipe) => {
         const card = document.createElement("div");
         card.className = "recipe-card";
@@ -43,7 +44,6 @@ export function renderRecipes(recipes, containerId, onToggleFavorite, onDeleteRe
       <p>Ингредиенты: ${recipe.ingredients.join(", ")}</p>
       <p>${recipe.instructions}</p>
       <button class="fav-btn">${recipe.favorite ? "Из избранного" : "В избранное"}</button>
-      <!-- Добавлена кнопка Редактировать -->
       <button class="edit-btn" style="margin-left: 10px; cursor: pointer;">Редактировать</button>
       <button class="delete-btn" style="margin-left: 10px; color: red; cursor: pointer;">Удалить</button>
     `;
@@ -61,4 +61,35 @@ export function renderRecipes(recipes, containerId, onToggleFavorite, onDeleteRe
         });
         container.appendChild(card);
     });
+}
+export function getFilter() {
+    const searchInput = document.getElementById("search");
+    const categorySelect = document.getElementById("category-filter");
+    const favsCheckbox = document.getElementById("favorites-only");
+    const timeCheckbox = document.getElementById("max-time-30");
+    const sortCheckbox = document.getElementById("sort-by-time");
+    return {
+        query: searchInput?.value || "",
+        category: categorySelect?.value || "Все",
+        favoritesOnly: favsCheckbox?.checked || false,
+        maxTime30: timeCheckbox?.checked || false,
+        sortByTime: sortCheckbox?.checked || false,
+    };
+}
+export function renderMessage(text, onRetry) {
+    const recipelist = document.getElementById("recipe-list");
+    if (recipelist) {
+        recipelist.innerHTML = "";
+        const p = document.createElement("p");
+        p.textContent = text;
+        recipelist.append(p);
+        if (onRetry) {
+            const btn = document.createElement("button");
+            btn.textContent = "Повторить попытку";
+            btn.style.marginLeft = "10px";
+            btn.style.cursor = "pointer";
+            btn.addEventListener("click", onRetry);
+            recipelist.append(btn);
+        }
+    }
 }

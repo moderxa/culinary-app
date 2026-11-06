@@ -1,19 +1,4 @@
-import type { Recipe, RecipeDraft, RecipeFilter } from "./types.js";
-
-export function createRecipe(draft: RecipeDraft): Recipe {
-  return {
-    ...draft,
-    id: `recipe-${Date.now()}`, 
-    favorite: false            
-  };
-}
-
-export function updateRecipe(recipe: Recipe, changes: Partial<RecipeDraft>): Recipe {
-  return {
-    ...recipe,
-    ...changes
-  };
-}
+import type { Recipe, RecipeFilter } from "./types.js";
 
 export function filterRecipes(recipes: Recipe[], filters: RecipeFilter): Recipe[] {
   let filtered = recipes.filter((recipe) => {
