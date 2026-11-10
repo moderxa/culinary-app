@@ -47,3 +47,13 @@ textarea, input:not([type="checkbox"]), select {
 }
 .error { color: #a32626; }
 .success { color: #176b43; }
+
+.recipe-card.is-favorite {
+    background-color: #fffdf0; 
+    border: 2px solid #f1c40f;   
+}
+
+.recipe-card.is-favorite .fav-btn {
+    background-color: #f1c40f;
+    color: #fff;
+}

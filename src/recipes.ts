@@ -22,3 +22,7 @@ export function filterRecipes(recipes: Recipe[], filters: RecipeFilter): Recipe[
 
   return filtered;
 }
+
+export function deleteRecipe(recipes: Recipe[], id: string): Recipe[] {
+  return recipes.filter((recipe) => recipe.id !== id);
+}

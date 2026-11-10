@@ -1,3 +1,12 @@
+function requireElement(selector) {
+    const elem = document.querySelector(selector);
+    if (!elem)
+        throw new Error(`Элемент не найден: ${selector}`);
+    return elem;
+}
+export const retryButton = requireElement("#retry-button");
+export const formMessage = requireElement("#form-message");
+export const recipeForm = requireElement("#recipe-form");
 function isValidUrl(url) {
     try {
         const parsed = new URL(url);
@@ -17,7 +26,7 @@ export function updateCategoryCounts(recipes) {
         }
     });
 }
-export function renderRecipes(recipes, containerId, onToggleFavorite, onDeleteRecipe, onEditRecipe) {
+export function renderRecipes(recipes, containerId) {
     const container = document.getElementById(containerId);
     if (!container)
         return;
@@ -43,22 +52,10 @@ export function renderRecipes(recipes, containerId, onToggleFavorite, onDeleteRe
       <p>Порции: ${recipe.servings} | Время: ${recipe.cookingTime} мин.</p>
       <p>Ингредиенты: ${recipe.ingredients.join(", ")}</p>
       <p>${recipe.instructions}</p>
-      <button class="fav-btn">${recipe.favorite ? "Из избранного" : "В избранное"}</button>
-      <button class="edit-btn" style="margin-left: 10px; cursor: pointer;">Редактировать</button>
-      <button class="delete-btn" style="margin-left: 10px; color: red; cursor: pointer;">Удалить</button>
+      <button class="fav-btn" data-action="favorite" data-id="${recipe.id}">${recipe.favorite ? "Из избранного" : "В избранное"}</button>
+      <button class="edit-btn" data-action="edit" data-id="${recipe.id}">Редактировать</button>
+      <button class="delete-btn" data-action="delete" data-id="${recipe.id}">Удалить</button>
     `;
-        const favBtn = card.querySelector(".fav-btn");
-        favBtn?.addEventListener("click", () => {
-            onToggleFavorite(recipe.id);
-        });
-        const editBtn = card.querySelector(".edit-btn");
-        editBtn?.addEventListener("click", () => {
-            onEditRecipe(recipe);
-        });
-        const deleteBtn = card.querySelector(".delete-btn");
-        deleteBtn?.addEventListener("click", () => {
-            onDeleteRecipe(recipe.id);
-        });
         container.appendChild(card);
     });
 }
@@ -76,20 +73,9 @@ export function getFilter() {
         sortByTime: sortCheckbox?.checked || false,
     };
 }
-export function renderMessage(text, onRetry) {
+export function renderMessage(text) {
     const recipelist = document.getElementById("recipe-list");
     if (recipelist) {
-        recipelist.innerHTML = "";
-        const p = document.createElement("p");
-        p.textContent = text;
-        recipelist.append(p);
-        if (onRetry) {
-            const btn = document.createElement("button");
-            btn.textContent = "Повторить попытку";
-            btn.style.marginLeft = "10px";
-            btn.style.cursor = "pointer";
-            btn.addEventListener("click", onRetry);
-            recipelist.append(btn);
-        }
+        recipelist.innerHTML = `<p>${text}</p>`;
     }
 }

@@ -1,8 +1,5 @@
-export type Category =
- | "Завтрак"
- | "Обед"
- | "Ужин"
- | "Десерт";
+export const CATEGORIES = ["Завтрак", "Обед", "Ужин", "Десерт"] as const;
+export type Category = (typeof CATEGORIES)[number];
 
 export interface Recipe {
   readonly id: string;
@@ -17,14 +14,12 @@ export interface Recipe {
 }
 
 export type RecipeDraft = Omit<Recipe, "id" | "favorite">;
-
-export type RecipeFilter = {
- query: string;
- category: Category | "Все";
- favoritesOnly: boolean;
- maxTime30: boolean;    
- sortByTime: boolean;   
-};
-
 export type NewRecipe = Omit<Recipe, "id">;
 
+export type RecipeFilter = {
+  query: string;
+  category: Category | "Все";
+  favoritesOnly: boolean;
+  maxTime30: boolean;    
+  sortByTime: boolean;   
+};

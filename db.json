@@ -12,7 +12,22 @@
         "Мука 3 ст. л."
       ],
       "instructions": "Смешать, сформировать, обжарить.",
-      "favorite": false
+      "favorite": true
+    },
+    {
+      "title": "Блины",
+      "category": "Завтрак",
+      "servings": 2,
+      "cookingTime": 15,
+      "ingredients": [
+        "Молоко",
+        "соль",
+        "сахар",
+        "яйца"
+      ],
+      "instructions": "qgshwieurowpq[]",
+      "favorite": false,
+      "id": "P0tupZw"
     }
   ]
 }

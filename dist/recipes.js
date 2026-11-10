@@ -12,3 +12,6 @@ export function filterRecipes(recipes, filters) {
     }
     return filtered;
 }
+export function deleteRecipe(recipes, id) {
+    return recipes.filter((recipe) => recipe.id !== id);
+}
