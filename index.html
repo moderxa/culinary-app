@@ -9,14 +9,15 @@
 </head>
 <body>
     <header class="page-header">
-    <h1>Кулинарная книга</h1>
-    <p>Рецепты на каждый день</p>
+        <h1>Кулинарная книга</h1>
+        <p>Рецепты на каждый день</p>
     </header>
     <main>
         <section aria-labelledby="search-title">
             <h2 id="search-title">Найти рецепт</h2>
             <label for="search">Название</label>
             <input id="search" type="search" placeholder="Например, сырники">
+            
             <label for="category-filter">Категория</label>
             <select id="category-filter">
                 <option value="Все">Все категории</option>
@@ -25,18 +26,36 @@
                 <option value="Ужин">Ужин</option>
                 <option value="Десерт">Десерт</option>
             </select>
+            
             <label>
                 <input id="favorites-only" type="checkbox">
                 Только избранное
             </label>
+
+            <label for="sort-key">Сортировать по:</label>
+            <select id="sort-key">
+                <option value="">Без сортировки</option>
+                <option value="title">Названию</option>
+                <option value="servings">Количеству порций</option>
+                <option value="cookingTime">Времени приготовления</option>
+            </select>
+
+            <label for="sort-direction">Порядок сортировки:</label>
+            <select id="sort-direction">
+                <option value="asc">По возрастанию</option>
+                <option value="desc">По убыванию</option>
+            </select>
+
             <label>
                 <input id="max-time-30" type="checkbox">
                 До 30 минут
             </label>
+            
             <label>
                 <input id="sort-by-time" type="checkbox">
                 Сортировать по времени
             </label>
+            
             <button type="button" id="clear-filters-btn">Очистить фильтры</button>
         </section>
 
@@ -75,24 +94,56 @@
             </form>
         </section>
 
-            <section aria-labelledby="recipes-title">
-        <h2 id="recipes-title">Рецепты</h2>
+        <section>
+            <h2>Редактировать рецепт</h2>
+            <form id="edit-recipe-form" hidden>
+                <input id="edit-recipe-id" type="hidden">
+                
+                <label for="edit-recipe-title">Название</label>
+                <input id="edit-recipe-title" required maxlength="80">
+                
+                <label for="edit-recipe-category">Категория</label>
+                <select id="edit-recipe-category">
+                    <option value="Завтрак">Завтрак</option>
+                    <option value="Обед">Обед</option>
+                    <option value="Ужин">Ужин</option>
+                    <option value="Десерт">Десерт</option>
+                </select>
+                
+                <label for="edit-recipe-servings">Количество порций</label>
+                <input id="edit-recipe-servings" type="number" min="1" max="30" required>
+                
+                <label for="edit-recipe-time">Время (мин.)</label>
+                <input id="edit-recipe-time" type="number" min="1" max="600" required>
+                
+                <label for="edit-recipe-ingredients">Ингредиенты через запятую</label>
+                <textarea id="edit-recipe-ingredients" required></textarea>
+                
+                <label for="edit-recipe-instructions">Приготовление</label>
+                <textarea id="edit-recipe-instructions" required></textarea>
+                
+                <button type="submit">Сохранить изменения</button>
+                <button id="cancel-edit" type="button">Отмена</button>
+                <p id="edit-message" role="status"></p>
+            </form>
+        </section>
 
-        <button id="retry-button" type="button" hidden>Повторить</button>
+        <section aria-labelledby="recipes-title">
+            <h2 id="recipes-title">Рецепты</h2>
 
-        
-        <div style="margin-bottom: 15px; font-size: 14px; color: #555;">
-            <strong>Категории:</strong> 
-            Завтрак <span id="count-Завтрак">(0)</span> | 
-            Обед <span id="count-Обед">(0)</span> | 
-            Ужин <span id="count-Ужин">(0)</span> | 
-            Десерт <span id="count-Десерт">(0)</span>
-        </div>
+            <button id="retry-button" type="button" hidden>Повторить</button>
 
-        <p id="results-count" aria-live="polite"></p>
-        <div id="recipe-list" class="recipe-grid"></div>
-    </section>
+            <div style="margin-bottom: 15px; font-size: 14px; color: #555;">
+                <strong>Категории:</strong> 
+                Завтрак <span id="count-Завтрак">(0)</span> | 
+                Обед <span id="count-Обед">(0)</span> | 
+                Ужин <span id="count-Ужин">(0)</span> | 
+                Десерт <span id="count-Десерт">(0)</span>
+            </div>
+
+            <p id="results-count" aria-live="polite"></p>
+            <div id="recipe-list" class="recipe-grid"></div>
+        </section>
     </main>
 </body>
 </html>
-

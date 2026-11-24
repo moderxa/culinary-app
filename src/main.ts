@@ -1,18 +1,24 @@
-import { fetchRecipes, createRecipeOnServer, setFavorite, deleteRecipeOnServer } from "./api.js";
+import { fetchRecipes, createRecipeOnServer, setFavorite, deleteRecipeOnServer, updateRecipeOnServer } from "./api.js";
 import { LoadState, errorMessage, assertNever } from "./state.js";
-import { filterRecipes, deleteRecipe } from "./recipes.js";
-import { renderRecipes, renderMessage, getFilter, retryButton, formMessage, recipeForm } from "./ui.js";
+import { filterRecipes, deleteRecipe, sortRecipes } from "./recipes.js";
+import {
+  renderRecipes, renderMessage, getFilter, retryButton, formMessage, recipeForm,
+  sortKeySelect, sortDirectionSelect,
+  editRecipeForm, editRecipeId, editRecipeTitle, editRecipeCategory,
+  editRecipeServings, editRecipeTime, editRecipeIngredients, editRecipeInstructions,
+  editMessage, cancelEditButton
+} from "./ui.js";
 import { withRetry } from "./retry.js";
 import { debounce } from "./debounce.js";
 import { isCategory } from "./parse.js";
-import type { Recipe, RecipeDraft, NewRecipe } from "./types.js";
+import type { Recipe, RecipeDraft, NewRecipe, RecipeSortKey, RecipeUpdate } from "./types.js";
 
 let state: LoadState = { status: "loading" };
 let searchController: AbortController | undefined;
 
 function setState(next: LoadState): void {
   state = next;
-  render();  
+  render();
 }
 
 function updateRecipes(change: (list: Recipe[]) => Recipe[]): void {
@@ -30,16 +36,25 @@ function render(): void {
     case "error":
       renderMessage(`Не удалось загрузить: ${state.message}`);
       break;
-    case "success":
-      renderRecipes(filterRecipes(state.recipes, getFilter()), "recipe-list");
+    case "success": {
+      let visible = filterRecipes(state.recipes, getFilter());
+
+      const sortKey = sortKeySelect.value as RecipeSortKey | "";
+      const sortDir = sortDirectionSelect.value as "asc" | "desc";
+      if (sortKey) {
+        visible = sortRecipes(visible, sortKey, sortDir);
+      }
+
+      renderRecipes(visible, "recipe-list");
       break;
+    }
     default:
       assertNever(state);
   }
 }
 
 async function performSearch(): Promise<void> {
-  searchController?.abort(); 
+  searchController?.abort();
   searchController = new AbortController();
   const { signal } = searchController;
 
@@ -50,7 +65,7 @@ async function performSearch(): Promise<void> {
     const recipes = await fetchRecipes(query, signal);
     setState({ status: "success", recipes });
   } catch (error: unknown) {
-    if (error instanceof DOMException && error.name === "AbortError") return; // Ошибку отмены просто пропускаем
+    if (error instanceof DOMException && error.name === "AbortError") return;
     setState({ status: "error", message: errorMessage(error) });
   }
 }
@@ -68,27 +83,52 @@ function setupEvents(): void {
   timeCheckbox?.addEventListener("change", () => render());
   sortCheckbox?.addEventListener("change", () => render());
 
+  sortKeySelect.addEventListener("change", () => render());
+  sortDirectionSelect.addEventListener("change", () => render());
+
   searchInput?.addEventListener("input", debounce(() => { void performSearch(); }, 300));
 
-  const clearBtn = document.getElementById("clear-filters-btn"); 
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      if (searchInput) (searchInput as HTMLInputElement).value = "";
-      if (categorySelect) (categorySelect as HTMLSelectElement).value = "Все";
-      if (favsCheckbox) (favsCheckbox as HTMLInputElement).checked = false;
-      if (timeCheckbox) (timeCheckbox as HTMLInputElement).checked = false;
-      if (sortCheckbox) (sortCheckbox as HTMLInputElement).checked = false;
-      void performSearch(); 
-    });
-  }
+  const clearBtn = document.getElementById("clear-filters-btn");
+  clearBtn?.addEventListener("click", () => {
+    if (searchInput) (searchInput as HTMLInputElement).value = "";
+    if (categorySelect) (categorySelect as HTMLSelectElement).value = "Все";
+    if (favsCheckbox) (favsCheckbox as HTMLInputElement).checked = false;
+    if (timeCheckbox) (timeCheckbox as HTMLInputElement).checked = false;
+    if (sortCheckbox) (sortCheckbox as HTMLInputElement).checked = false;
+    
+    sortKeySelect.value = "";
+    sortDirectionSelect.value = "asc";
+    
+    void performSearch();
+  });
 
   retryButton.addEventListener("click", () => void init());
 
   recipeListBlock?.addEventListener("click", async (event) => {
     const target = event.target as HTMLElement;
-    const action = target.getAttribute("data-action");
-    const id = target.getAttribute("data-id");
+    const button = target.closest("button");
+    if (!button) return;
+
+    const action = button.getAttribute("data-action");
+    const id = button.getAttribute("data-id");
     if (!action || !id || state.status !== "success") return;
+
+    if (action === "edit") {
+      const current = state.recipes.find((recipe) => recipe.id === id);
+      if (!current) return;
+
+      editRecipeId.value = current.id;
+      editRecipeTitle.value = current.title;
+      editRecipeCategory.value = current.category;
+      editRecipeServings.value = String(current.servings);
+      editRecipeTime.value = String(current.cookingTime);
+      editRecipeIngredients.value = current.ingredients.join(", ");
+      editRecipeInstructions.value = current.instructions;
+      editMessage.textContent = "";
+      editRecipeForm.hidden = false;
+      editRecipeForm.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     try {
       if (action === "favorite") {
@@ -102,6 +142,39 @@ function setupEvents(): void {
       }
     } catch (error: unknown) {
       alert(`Не удалось выполнить действие: ${errorMessage(error)}`);
+    }
+  });
+
+  cancelEditButton.addEventListener("click", () => {
+    editRecipeForm.reset();
+    editRecipeForm.hidden = true;
+  });
+
+  editRecipeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (state.status !== "success") return;
+
+    const category = editRecipeCategory.value;
+    if (!isCategory(category)) return;
+
+    const id = editRecipeId.value;
+    const changes: RecipeUpdate = {
+      title: editRecipeTitle.value.trim(),
+      category,
+      servings: Number(editRecipeServings.value),
+      cookingTime: Number(editRecipeTime.value),
+      ingredients: editRecipeIngredients.value.split(",").map((x) => x.trim()).filter(Boolean),
+      instructions: editRecipeInstructions.value.trim()
+    };
+
+    try {
+      const updated = await updateRecipeOnServer(id, changes);
+      updateRecipes((list) => list.map((recipe) => (recipe.id === id ? updated : recipe)));
+      editRecipeForm.reset();
+      editRecipeForm.hidden = true;
+      formMessage.textContent = "Изменения сохранены.";
+    } catch (error: unknown) {
+      editMessage.textContent = errorMessage(error);
     }
   });
 
@@ -127,7 +200,7 @@ function setupEvents(): void {
 
     try {
       const created = await createRecipeOnServer(newRecipe);
-      updateRecipes((list) => [created, ...list]); 
+      updateRecipes((list) => [created, ...list]);
       recipeForm.reset();
       formMessage.textContent = "Рецепт добавлен успешно.";
     } catch (error: unknown) {
@@ -139,10 +212,10 @@ function setupEvents(): void {
 async function init(): Promise<void> {
   setState({ status: "loading" });
   try {
-    const recipes = await withRetry(() => fetchRecipes(), 3, 1000); 
+    const recipes = await withRetry(() => fetchRecipes(), 3, 1000);
     setState({ status: "success", recipes });
   } catch (error: unknown) {
-    setState({ status: "error", message: errorMessage(error) }); 
+    setState({ status: "error", message: errorMessage(error) });
   }
 }
 

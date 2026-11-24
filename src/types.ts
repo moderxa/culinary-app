@@ -23,3 +23,20 @@ export type RecipeFilter = {
   maxTime30: boolean;    
   sortByTime: boolean;   
 };
+
+export type RecipeSortKey = "title" | "servings" | "cookingTime";
+
+export type RecipeSortValue =
+  | Recipe["title"]
+  | Recipe["servings"]
+  | Recipe["cookingTime"];
+
+export type CategoryLabels = Record<Category, string>;
+
+export type RecipeUpdate = Partial<Omit<Recipe, "id">>;
+export type RecipeCardData = Pick<Recipe, "id" | "title" | "category">;
+export type RecipeWithoutId = Omit<Recipe, "id">;
+export type ReadonlyRecipe = Readonly<Recipe>;
+export type CategoryCounts = Record<Category, number>;
+export type EditableRecipeFields = Exclude<keyof Recipe, "id">;
+export type MainRecipeFields = Extract<keyof Recipe, "title" | "category">;

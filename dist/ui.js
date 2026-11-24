@@ -7,6 +7,20 @@ function requireElement(selector) {
 export const retryButton = requireElement("#retry-button");
 export const formMessage = requireElement("#form-message");
 export const recipeForm = requireElement("#recipe-form");
+// Элементы сортировки
+export const sortKeySelect = requireElement("#sort-key");
+export const sortDirectionSelect = requireElement("#sort-direction");
+// Элементы формы редактирования
+export const editRecipeForm = requireElement("#edit-recipe-form");
+export const editRecipeId = requireElement("#edit-recipe-id");
+export const editRecipeTitle = requireElement("#edit-recipe-title");
+export const editRecipeCategory = requireElement("#edit-recipe-category");
+export const editRecipeServings = requireElement("#edit-recipe-servings");
+export const editRecipeTime = requireElement("#edit-recipe-time");
+export const editRecipeIngredients = requireElement("#edit-recipe-ingredients");
+export const editRecipeInstructions = requireElement("#edit-recipe-instructions");
+export const editMessage = requireElement("#edit-message");
+export const cancelEditButton = requireElement("#cancel-edit");
 function isValidUrl(url) {
     try {
         const parsed = new URL(url);

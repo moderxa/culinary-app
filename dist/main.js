@@ -1,7 +1,7 @@
-import { fetchRecipes, createRecipeOnServer, setFavorite, deleteRecipeOnServer } from "./api.js";
+import { fetchRecipes, createRecipeOnServer, setFavorite, deleteRecipeOnServer, updateRecipeOnServer } from "./api.js";
 import { errorMessage, assertNever } from "./state.js";
-import { filterRecipes, deleteRecipe } from "./recipes.js";
-import { renderRecipes, renderMessage, getFilter, retryButton, formMessage, recipeForm } from "./ui.js";
+import { filterRecipes, deleteRecipe, sortRecipes } from "./recipes.js";
+import { renderRecipes, renderMessage, getFilter, retryButton, formMessage, recipeForm, sortKeySelect, sortDirectionSelect, editRecipeForm, editRecipeId, editRecipeTitle, editRecipeCategory, editRecipeServings, editRecipeTime, editRecipeIngredients, editRecipeInstructions, editMessage, cancelEditButton } from "./ui.js";
 import { withRetry } from "./retry.js";
 import { debounce } from "./debounce.js";
 import { isCategory } from "./parse.js";
@@ -25,9 +25,16 @@ function render() {
         case "error":
             renderMessage(`Не удалось загрузить: ${state.message}`);
             break;
-        case "success":
-            renderRecipes(filterRecipes(state.recipes, getFilter()), "recipe-list");
+        case "success": {
+            let visible = filterRecipes(state.recipes, getFilter());
+            const sortKey = sortKeySelect.value;
+            const sortDir = sortDirectionSelect.value;
+            if (sortKey) {
+                visible = sortRecipes(visible, sortKey, sortDir);
+            }
+            renderRecipes(visible, "recipe-list");
             break;
+        }
         default:
             assertNever(state);
     }
@@ -44,7 +51,7 @@ async function performSearch() {
     }
     catch (error) {
         if (error instanceof DOMException && error.name === "AbortError")
-            return; // Ошибку отмены просто пропускаем
+            return;
         setState({ status: "error", message: errorMessage(error) });
     }
 }
@@ -59,30 +66,51 @@ function setupEvents() {
     favsCheckbox?.addEventListener("change", () => render());
     timeCheckbox?.addEventListener("change", () => render());
     sortCheckbox?.addEventListener("change", () => render());
+    sortKeySelect.addEventListener("change", () => render());
+    sortDirectionSelect.addEventListener("change", () => render());
     searchInput?.addEventListener("input", debounce(() => { void performSearch(); }, 300));
     const clearBtn = document.getElementById("clear-filters-btn");
-    if (clearBtn) {
-        clearBtn.addEventListener("click", () => {
-            if (searchInput)
-                searchInput.value = "";
-            if (categorySelect)
-                categorySelect.value = "Все";
-            if (favsCheckbox)
-                favsCheckbox.checked = false;
-            if (timeCheckbox)
-                timeCheckbox.checked = false;
-            if (sortCheckbox)
-                sortCheckbox.checked = false;
-            void performSearch();
-        });
-    }
+    clearBtn?.addEventListener("click", () => {
+        if (searchInput)
+            searchInput.value = "";
+        if (categorySelect)
+            categorySelect.value = "Все";
+        if (favsCheckbox)
+            favsCheckbox.checked = false;
+        if (timeCheckbox)
+            timeCheckbox.checked = false;
+        if (sortCheckbox)
+            sortCheckbox.checked = false;
+        sortKeySelect.value = "";
+        sortDirectionSelect.value = "asc";
+        void performSearch();
+    });
     retryButton.addEventListener("click", () => void init());
     recipeListBlock?.addEventListener("click", async (event) => {
         const target = event.target;
-        const action = target.getAttribute("data-action");
-        const id = target.getAttribute("data-id");
+        const button = target.closest("button");
+        if (!button)
+            return;
+        const action = button.getAttribute("data-action");
+        const id = button.getAttribute("data-id");
         if (!action || !id || state.status !== "success")
             return;
+        if (action === "edit") {
+            const current = state.recipes.find((recipe) => recipe.id === id);
+            if (!current)
+                return;
+            editRecipeId.value = current.id;
+            editRecipeTitle.value = current.title;
+            editRecipeCategory.value = current.category;
+            editRecipeServings.value = String(current.servings);
+            editRecipeTime.value = String(current.cookingTime);
+            editRecipeIngredients.value = current.ingredients.join(", ");
+            editRecipeInstructions.value = current.instructions;
+            editMessage.textContent = "";
+            editRecipeForm.hidden = false;
+            editRecipeForm.scrollIntoView({ behavior: "smooth", block: "center" });
+            return;
+        }
         try {
             if (action === "favorite") {
                 const current = state.recipes.find((r) => r.id === id);
@@ -98,6 +126,37 @@ function setupEvents() {
         }
         catch (error) {
             alert(`Не удалось выполнить действие: ${errorMessage(error)}`);
+        }
+    });
+    cancelEditButton.addEventListener("click", () => {
+        editRecipeForm.reset();
+        editRecipeForm.hidden = true;
+    });
+    editRecipeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (state.status !== "success")
+            return;
+        const category = editRecipeCategory.value;
+        if (!isCategory(category))
+            return;
+        const id = editRecipeId.value;
+        const changes = {
+            title: editRecipeTitle.value.trim(),
+            category,
+            servings: Number(editRecipeServings.value),
+            cookingTime: Number(editRecipeTime.value),
+            ingredients: editRecipeIngredients.value.split(",").map((x) => x.trim()).filter(Boolean),
+            instructions: editRecipeInstructions.value.trim()
+        };
+        try {
+            const updated = await updateRecipeOnServer(id, changes);
+            updateRecipes((list) => list.map((recipe) => (recipe.id === id ? updated : recipe)));
+            editRecipeForm.reset();
+            editRecipeForm.hidden = true;
+            formMessage.textContent = "Изменения сохранены.";
+        }
+        catch (error) {
+            editMessage.textContent = errorMessage(error);
         }
     });
     recipeForm.addEventListener("submit", async (event) => {

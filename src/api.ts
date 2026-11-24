@@ -1,4 +1,4 @@
-import type { Recipe, NewRecipe } from "./types.js";
+import type { Recipe, NewRecipe, RecipeUpdate } from "./types.js";
 import { parseRecipes, parseRecipe } from "./parse.js";
 
 const API_URL = "http://localhost:3001/recipes";
@@ -41,4 +41,20 @@ export async function setFavorite(id: string, favorite: boolean): Promise<Recipe
 
 export async function deleteRecipeOnServer(id: string): Promise<void> {
   await request(`${API_URL}/${id}`, { method: "DELETE" });
+}
+
+export type FetchRecipesResult = Awaited<ReturnType<typeof fetchRecipes>>;
+export type FetchRecipesArguments = Parameters<typeof fetchRecipes>;
+
+export async function updateRecipeOnServer(
+  id: Recipe["id"],
+  changes: RecipeUpdate
+): Promise<Recipe> {
+  const data = await request(`${API_URL}/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes)
+  });
+
+  return parseRecipe(data);
 }

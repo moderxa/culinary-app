@@ -34,3 +34,11 @@ export async function setFavorite(id, favorite) {
 export async function deleteRecipeOnServer(id) {
     await request(`${API_URL}/${id}`, { method: "DELETE" });
 }
+export async function updateRecipeOnServer(id, changes) {
+    const data = await request(`${API_URL}/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changes)
+    });
+    return parseRecipe(data);
+}
